@@ -1,8 +1,7 @@
-
 import React, { useState, useEffect } from 'react';
 import { UserPlus, Trash2, Users, Loader2, MapPin, Plus, DatabaseBackup, CheckCircle2 } from 'lucide-react';
-import { supabase } from '../../services/supabase.ts';
-import { BRANCHES } from '../../constants.ts';
+import { supabase } from '../../services/supabase';
+import { BRANCHES } from '../../constants';
 import { toast } from 'react-hot-toast';
 
 // The list of initial staff members you provided

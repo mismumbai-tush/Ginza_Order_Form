@@ -1,7 +1,6 @@
-
 import React, { useState, useEffect } from 'react';
 import { Package, Search, Calendar, ChevronDown, ChevronUp, Clock, FileSpreadsheet } from 'lucide-react';
-import { Order } from '../../types.ts';
+import { Order } from '../../types';
 
 export const OrderHistory: React.FC = () => {
   const [history, setHistory] = useState<Order[]>([]);
