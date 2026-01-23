@@ -1,11 +1,12 @@
+
 import React, { useState, useEffect } from 'react';
 import { Search, User, Plus, Check, Loader2, Trash2, Package, Truck, Hash, ReceiptText, Calendar, AlertCircle, Edit2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { supabase } from '../../services/supabase.ts';
-import { submitToGoogleSheets } from '../../services/googleSheets.ts';
+import { supabase } from '../../services/supabase';
+import { submitToGoogleSheets } from '../../services/googleSheets';
 import { toast } from 'react-hot-toast';
-import { OrderItem, Order } from '../../types.ts';
-import { BRANCHES, CATEGORIES, UOMS, BRANCH_SALES_PERSONS } from '../../constants.ts';
+import { OrderItem, Order } from '../../types';
+import { BRANCHES, CATEGORIES, UOMS, BRANCH_SALES_PERSONS } from '../../constants';
 
 const CATEGORY_DB_MAP: Record<string, string> = {
   'CKU': 'cku', 'CRO': 'cro', 'CUP': 'cup', 'ELASTIC': 'elastic', 'EMBROIDARY': 'embroidary',
@@ -121,7 +122,6 @@ export const OrderForm: React.FC = () => {
   };
 
   const addItemToPreview = () => {
-    // If itemName is not set (user didn't click dropdown), use the text from the search box
     const finalItemName = (currentItem.manualItem || !currentItem.itemName) ? itemSearch : currentItem.itemName;
     
     if (!currentItem.category || !finalItemName || !currentItem.uom || !currentItem.quantity || !currentItem.rate) {
@@ -159,7 +159,6 @@ export const OrderForm: React.FC = () => {
       toast.success('Item added to list');
     }
 
-    // Reset current item fields
     setItemSearch('');
     setCurrentItem({ 
       ...currentItem, 
@@ -190,7 +189,6 @@ export const OrderForm: React.FC = () => {
     });
     setItemSearch(item.itemName);
     window.scrollTo({ top: 0, behavior: 'smooth' });
-    // Fix: replace toast.info (not available in react-hot-toast) with generic toast()
     toast('Item loaded into form');
   };
 
@@ -303,7 +301,7 @@ export const OrderForm: React.FC = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2 border-t border-slate-100">
             <div className="space-y-1">
-              <label className="text-[9px] font-bold text-slate-500 uppercase tracking-wider ml-0.5">Account Status (Manual)</label>
+              <label className="text-[9px] font-bold text-slate-500 uppercase tracking-wider ml-0.5">Account Status</label>
               <input type="text" value={accountStatus} onChange={(e) => setAccountStatus(e.target.value)} className="w-full bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-[10px] font-semibold" placeholder="Account status..." />
             </div>
             <div className="space-y-1">
@@ -321,7 +319,6 @@ export const OrderForm: React.FC = () => {
           <h3 className="text-[9px] font-bold text-slate-900 uppercase tracking-widest">{editingId ? 'Edit Product' : 'Add Product'}</h3>
         </div>
         <div className="p-4 space-y-4">
-          {/* Row 1: Unit, Name, UOM, Color */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
             <div className="space-y-1">
               <label className="text-[9px] font-bold text-slate-500 uppercase tracking-wider">Unit</label>
@@ -358,7 +355,6 @@ export const OrderForm: React.FC = () => {
             </div>
           </div>
 
-          {/* Row 2: Color, Width, Qty, Rate */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
             <div className="space-y-1"><label className="text-[9px] font-bold text-slate-500 uppercase tracking-wider">Color</label><input type="text" value={currentItem.color} onChange={(e) => setCurrentItem({...currentItem, color: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-[10px] font-bold" placeholder="STD" /></div>
             <div className="space-y-1"><label className="text-[9px] font-bold text-slate-500 uppercase tracking-wider">Width</label><input type="text" value={currentItem.width} onChange={(e) => setCurrentItem({...currentItem, width: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-[10px] font-bold" placeholder="STD" /></div>
@@ -366,7 +362,6 @@ export const OrderForm: React.FC = () => {
             <div className="space-y-1"><label className="text-[9px] font-bold text-slate-500 uppercase tracking-wider">Rate (₹)</label><input type="number" value={currentItem.rate} onChange={(e) => setCurrentItem({...currentItem, rate: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-[10px] font-bold" /></div>
           </div>
 
-          {/* Row 3: Discount, Dispatch Date, Note, Add Button */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
             <div className="space-y-1"><label className="text-[9px] font-bold text-slate-500 uppercase tracking-wider">Discount %</label><input type="number" value={currentItem.discount} onChange={(e) => setCurrentItem({...currentItem, discount: e.target.value})} className="w-full bg-emerald-50 border border-emerald-100 rounded-lg px-2.5 py-1.5 text-[10px] font-bold text-emerald-700" placeholder="0" /></div>
             <div className="space-y-1"><label className="text-[9px] font-bold text-slate-500 uppercase tracking-wider">Dispatch Date</label><input type="date" value={currentItem.dispatchDate} onChange={(e) => setCurrentItem({...currentItem, dispatchDate: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 text-[9px] font-bold text-slate-700" /></div>

@@ -1,9 +1,9 @@
 
 import React, { useState } from 'react';
-import { Mail, Lock, User as UserIcon, MapPin, Loader2 } from 'lucide-react';
-import { supabase } from '../../services/supabase.ts';
+import { Mail, Lock, MapPin, Loader2 } from 'lucide-react';
+import { supabase } from '../../services/supabase';
 import { toast } from 'react-hot-toast';
-import { BRANCHES } from '../../constants.ts';
+import { BRANCHES } from '../../constants';
 
 export const AuthView: React.FC = () => {
   const [isLogin, setIsLogin] = useState(true);

@@ -2,7 +2,7 @@
 import React from 'react';
 import { User } from '@supabase/supabase-js';
 import { LogOut, Building2, ShieldCheck } from 'lucide-react';
-import { supabase } from '../../services/supabase.ts';
+import { supabase } from '../../services/supabase';
 import { toast } from 'react-hot-toast';
 
 interface LayoutProps {

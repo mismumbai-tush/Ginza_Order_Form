@@ -1,10 +1,10 @@
 
 import React, { useState, useEffect } from 'react';
 import { PlusCircle, History } from 'lucide-react';
-import { OrderForm } from '../OrderForm/OrderForm.tsx';
-import { OrderHistory } from '../History/OrderHistory.tsx';
+import { OrderForm } from '../OrderForm/OrderForm';
+import { OrderHistory } from '../History/OrderHistory';
 import { User } from '@supabase/supabase-js';
-import { supabase } from '../../services/supabase.ts';
+import { supabase } from '../../services/supabase';
 
 interface DashboardProps {
   user: User;

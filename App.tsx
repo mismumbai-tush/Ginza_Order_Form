@@ -1,10 +1,10 @@
 
 import React, { useState, useEffect } from 'react';
 import { Toaster, toast } from 'react-hot-toast';
-import { supabase } from './services/supabase.ts';
-import { AuthView } from './components/Auth/AuthView.tsx';
-import { Dashboard } from './components/Dashboard/Dashboard.tsx';
-import { Layout } from './components/Layout/Layout.tsx';
+import { supabase } from './services/supabase';
+import { AuthView } from './components/Auth/AuthView';
+import { Dashboard } from './components/Dashboard/Dashboard';
+import { Layout } from './components/Layout/Layout';
 import { User } from '@supabase/supabase-js';
 
 const App: React.FC = () => {
