@@ -43,4 +43,4 @@ export const CATEGORIES = [
   'WARP(UDHANA)'
 ].sort();
 
-export const UOMS = ['INCH', 'KG', 'MRT', 'PCS', 'PKT', 'ROLL', 'YARD'];
+export const UOMS = ['INCH', 'KG', 'MTR', 'PCS', 'PKT', 'ROLL', 'YARD'];
