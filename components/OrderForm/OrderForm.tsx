@@ -61,16 +61,21 @@ export const OrderForm: React.FC = () => {
         const { data, error } = await supabase
           .from('sales_persons')
           .select('name')
-          .eq('branch', branch)
-          .order('name', { ascending: true });
+          .eq('branch', branch);
         
         if (error) throw error;
-        if (data && data.length > 0) {
-          setSalesPersonsList(data.map(d => d.name));
-        } else {
-          setSalesPersonsList(BRANCH_SALES_PERSONS[branch] || []);
-        }
+
+        // Get hardcoded names from constants
+        const hardcodedNames = BRANCH_SALES_PERSONS[branch] || [];
+        // Get names from database
+        const dbNames = data?.map(d => d.name) || [];
+        
+        // Merge both lists and remove duplicates using a Set
+        const combined = Array.from(new Set([...hardcodedNames, ...dbNames])).sort((a, b) => a.localeCompare(b));
+        
+        setSalesPersonsList(combined);
       } catch (err) {
+        // Fallback to hardcoded list if database fails
         setSalesPersonsList(BRANCH_SALES_PERSONS[branch] || []);
       }
     };
