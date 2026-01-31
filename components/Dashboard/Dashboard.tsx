@@ -1,10 +1,9 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { PlusCircle, History } from 'lucide-react';
 import { OrderForm } from '../OrderForm/OrderForm';
 import { OrderHistory } from '../History/OrderHistory';
 import { User } from '@supabase/supabase-js';
-import { supabase } from '../../services/supabase';
 
 interface DashboardProps {
   user: User;
@@ -13,34 +12,9 @@ interface DashboardProps {
 export const Dashboard: React.FC<DashboardProps> = ({ user }) => {
   const [activeTab, setActiveTab] = useState<'new-order' | 'history'>('new-order');
 
-  const metadata = user.user_metadata || {};
-  const firstName = metadata.first_name || '';
-  const lastName = metadata.last_name || '';
-  const fullName = `${firstName} ${lastName}`.trim() || user.email?.split('@')[0];
-  const branch = metadata.branch && metadata.branch !== 'N/A' ? metadata.branch : 'Corporate';
-
-  useEffect(() => {
-    const syncUserToSalesList = async () => {
-      if (!fullName || !branch || branch === 'N/A') return;
-      try {
-        const { data: existing } = await supabase
-          .from('sales_persons')
-          .select('id')
-          .eq('name', fullName)
-          .eq('branch', branch)
-          .maybeSingle();
-
-        if (!existing) {
-          await supabase
-            .from('sales_persons')
-            .insert([{ name: fullName, branch: branch }]);
-        }
-      } catch (err) {
-        console.warn("Sync error:", err);
-      }
-    };
-    syncUserToSalesList();
-  }, [fullName, branch]);
+  // We removed the auto-sync effect here to prevent "Suresh Prasad" or any logged-in user 
+  // from being automatically added to the global salesperson list. 
+  // Management should be done manually via the SalesPersonManager or constants.
 
   return (
     <div className="space-y-4">

@@ -11,7 +11,7 @@ export const BRANCH_CONFIG: Record<string, { headEmail: string, headName: string
   Jaipur: { headEmail: 'admin@ginzalimited.com', headName: 'Branch Head' }, 
   Kolkata: { headEmail: 'vishalambhore@ginzalimited.com', headName: 'Vishal Amhore' },
   Ludhiana: { headEmail: 'admin@ginzalimited.com', headName: 'Branch Head' },
-  Mumbai: { headEmail: 'crm.mumbai@ginzalimited.com', headName: 'Saskhi' },
+  Mumbai: { headEmail: 'vishal.ambhore@ginzalimited.com', headName: 'Vishal' },
   Surat: { headEmail: 'piyush.baid@ginzalimited.com', headName: 'Piyush Baid' },
   Tirupur: { headEmail: 'tirupur@ginzalimited.com', headName: 'Ravi Varman' },
   Ulhasnagar: { headEmail: 'sachin.bhosle@ginzalimited.com', headName: 'Sachin Bhosale' }
@@ -34,6 +34,7 @@ export const CATEGORIES = [
   'CKU', 
   'CRO', 
   'CUP', 
+  'DELHI',
   'ELASTIC', 
   'EMBROIDARY', 
   'EYE_N_HOOK', 
