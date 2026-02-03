@@ -9,7 +9,7 @@ import { OrderItem, Order } from '../../types';
 import { BRANCHES, CATEGORIES, UOMS, BRANCH_SALES_PERSONS } from '../../constants';
 
 const CATEGORY_DB_MAP: Record<string, string> = {
-  'CKU': 'cku', 'CRO': 'cro', 'CUP': 'cup', 'ELASTIC': 'elastic', 'EMBROIDARY': 'embroidary',
+  'CKU': 'cku', 'CRO': 'cro', 'CUP': 'cup', 'DELHI': 'delhi', 'ELASTIC': 'elastic', 'EMBROIDARY': 'embroidary',
   'EYE_N_HOOK': 'eye_n_hook', 'PRINTING': 'printing', 'TLU': 'tlu', 'VAU': 'vau', 'WARP(UDHANA)': 'warp'
 };
 
@@ -66,7 +66,7 @@ export const OrderForm: React.FC = () => {
     const fetchSales = async () => {
       if (!branch) { setSalesPersonsList([]); return; }
       
-      // STRICT OVERRIDE FOR DELHI: Show ONLY the authorized list
+      // STRICT OVERRIDE FOR DELHI
       if (branch === 'Delhi') {
         const delhiList = BRANCH_SALES_PERSONS['Delhi'] || [];
         setSalesPersonsList([...delhiList].sort((a, b) => a.localeCompare(b)));
@@ -81,13 +81,9 @@ export const OrderForm: React.FC = () => {
         
         if (error) throw error;
 
-        // 1. Get hardcoded list from constants
         const hardcoded = BRANCH_SALES_PERSONS[branch] || [];
-        
-        // 2. Get names from database
         const dbNames = data?.map(d => d.name) || [];
         
-        // 3. Combine, Trim, and Remove Duplicates strictly
         const combined = Array.from(new Set([
           ...hardcoded.map(n => n.trim()), 
           ...dbNames.map(n => n.trim())
@@ -103,14 +99,32 @@ export const OrderForm: React.FC = () => {
     fetchSales();
   }, [branch]);
 
-  // Customer Search Logic
+  // Customer Search Logic - IMPROVED SEARCH
   useEffect(() => {
     const searchCustomers = async () => {
-      if (customerSearch.length < 1 || selectedCustomer || !branch) { setCustomers([]); return; }
+      // Clear if search is short or already selected
+      if (customerSearch.length < 1 || selectedCustomer || !branch) { 
+        if (customerSearch.length === 0) setCustomers([]);
+        return; 
+      }
+      
       setIsSearchingCustomer(true);
-      const { data } = await supabase.from('customers').select('*').eq('branch', branch).ilike('customer_name', `${customerSearch}%`).limit(8);
-      setCustomers(data || []);
-      setIsSearchingCustomer(false);
+      try {
+        // Search by Name OR Mobile Number with wildcard support
+        const { data, error } = await supabase
+          .from('customers')
+          .select('*')
+          .eq('branch', branch)
+          .or(`customer_name.ilike.%${customerSearch}%,mob_no.ilike.%${customerSearch}%`)
+          .limit(15);
+        
+        if (error) throw error;
+        setCustomers(data || []);
+      } catch (err) {
+        console.error("Customer Search Error:", err);
+      } finally {
+        setIsSearchingCustomer(false);
+      }
     };
     const timer = setTimeout(searchCustomers, 300);
     return () => clearTimeout(timer);
@@ -122,7 +136,7 @@ export const OrderForm: React.FC = () => {
       const dbCol = CATEGORY_DB_MAP[currentItem.category];
       if (!dbCol || itemSearch.length === 0) { setSuggestedProducts([]); return; }
       setIsSearchingProduct(true);
-      const { data } = await supabase.from('products').select('*').not(dbCol, 'is', null).neq(dbCol, '').ilike(dbCol, `${itemSearch}%`).order(dbCol, { ascending: true }).limit(50);
+      const { data } = await supabase.from('products').select('*').not(dbCol, 'is', null).neq(dbCol, '').ilike(dbCol, `%${itemSearch}%`).order(dbCol, { ascending: true }).limit(50);
       setSuggestedProducts(data || []);
       setIsSearchingProduct(false);
     };
@@ -152,7 +166,6 @@ export const OrderForm: React.FC = () => {
   const addItemToPreview = () => {
     const finalItemName = currentItem.itemName || itemSearch;
     
-    // Debug validation
     if (!currentItem.category) { toast.error('Unit/Category selection required'); return; }
     if (!finalItemName.trim()) { toast.error('Item Name cannot be empty'); return; }
     if (!currentItem.uom) { toast.error('UOM selection required'); return; }
@@ -189,7 +202,6 @@ export const OrderForm: React.FC = () => {
       toast.success('Added to preview batch');
     }
 
-    // Reset Item Fields
     setItemSearch('');
     setCurrentItem({ 
       ...currentItem, 
@@ -220,12 +232,11 @@ export const OrderForm: React.FC = () => {
     });
     setItemSearch(item.itemName);
     window.scrollTo({ top: 350, behavior: 'smooth' });
-    toast('Item loaded for editing');
   };
 
   const handleSubmitOrder = async () => {
     if (!customerSearch || !branch || !salesPerson || items.length === 0) {
-      toast.error('Mandatory data missing (Customer, Branch, Staff, or Items)'); 
+      toast.error('Mandatory data missing'); 
       return;
     }
     setIsSubmitting(true);
@@ -248,7 +259,6 @@ export const OrderForm: React.FC = () => {
       const history = JSON.parse(localStorage.getItem('ginza_order_history') || '[]');
       localStorage.setItem('ginza_order_history', JSON.stringify([order, ...history]));
       toast.success('Order Batch Synced Successfully');
-      // Reset Full Form
       setItems([]); 
       setCustomerPONo(''); 
       setTransporterName(''); 
@@ -260,14 +270,13 @@ export const OrderForm: React.FC = () => {
       setCustomerContact(''); 
       setCustomerEmail('');
     } else {
-      toast.error('Sync failed. Please check connection.');
+      toast.error('Sync failed. Check connection.');
     }
     setIsSubmitting(false);
   };
 
   return (
     <div className="space-y-4 max-w-6xl mx-auto pb-24">
-      {/* SECTION 1: IDENTITY & CONTEXT */}
       <section className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
         <div className="px-5 py-2 border-b border-slate-100 flex items-center gap-2 bg-slate-50/50">
           <Hash className="h-3 w-3 text-slate-400" />
@@ -276,7 +285,7 @@ export const OrderForm: React.FC = () => {
         <div className="p-4 grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="space-y-1">
             <label className="text-[9px] font-bold text-slate-500 uppercase tracking-wider ml-0.5">Branch Select</label>
-            <select value={branch} onChange={(e) => { setBranch(e.target.value); setSalesPerson(''); }} className="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-[10px] font-semibold outline-none focus:ring-1 focus:ring-indigo-500">
+            <select value={branch} onChange={(e) => { setBranch(e.target.value); setSalesPerson(''); setCustomerSearch(''); setSelectedCustomer(false); }} className="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-[10px] font-semibold outline-none focus:ring-1 focus:ring-indigo-500">
               <option value="">-- Choose Branch --</option>
               {BRANCHES.map(b => <option key={b} value={b}>{b}</option>)}
             </select>
@@ -286,7 +295,6 @@ export const OrderForm: React.FC = () => {
             <select value={salesPerson} onChange={(e) => setSalesPerson(e.target.value)} disabled={!branch} className="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-[10px] font-semibold outline-none focus:ring-1 focus:ring-indigo-500">
               <option value="">-- Select Staff --</option>
               {salesPersonsList.map(s => <option key={s} value={s}>{s}</option>)}
-              {salesPerson && !salesPersonsList.includes(salesPerson) && <option value={salesPerson}>{salesPerson} (Active User)</option>}
             </select>
           </div>
           <div className="space-y-1">
@@ -296,7 +304,6 @@ export const OrderForm: React.FC = () => {
         </div>
       </section>
 
-      {/* SECTION 2: CLIENT DETAILS */}
       <section className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
         <div className="px-5 py-2 border-b border-slate-100 bg-slate-50/50 flex items-center gap-2">
           <User className="h-3 w-3 text-indigo-500" />
@@ -305,19 +312,22 @@ export const OrderForm: React.FC = () => {
         <div className="p-4 space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="relative space-y-1">
-              <label className="text-[9px] font-bold text-slate-500 uppercase tracking-wider ml-0.5">Client Lookup</label>
+              <label className="text-[9px] font-bold text-slate-500 uppercase tracking-wider ml-0.5">Customer Search (Name/Mobile)*</label>
               <div className="relative">
                 <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3 w-3 text-slate-400" />
-                <input type="text" value={customerSearch} onChange={(e) => { setCustomerSearch(e.target.value); setSelectedCustomer(false); }} disabled={!branch} className="w-full pl-7 pr-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-[10px] font-semibold" placeholder="Start typing customer name..." />
+                <input type="text" value={customerSearch} onChange={(e) => { setCustomerSearch(e.target.value); setSelectedCustomer(false); }} disabled={!branch} className="w-full pl-7 pr-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-[10px] font-semibold" placeholder={branch ? "Search by name or phone..." : "Select branch first"} />
                 {isSearchingCustomer && <Loader2 className="absolute right-2.5 top-1/2 -translate-y-1/2 h-3 w-3 animate-spin text-indigo-500" />}
               </div>
               <AnimatePresence>
-                {customers.length > 0 && (
-                  <motion.div initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }} className="absolute z-30 w-full mt-1 bg-white border border-slate-200 rounded-lg shadow-xl max-h-40 overflow-y-auto divide-y divide-slate-50">
+                {customers.length > 0 && !selectedCustomer && (
+                  <motion.div initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }} className="absolute z-30 w-full mt-1 bg-white border border-slate-200 rounded-lg shadow-xl max-h-48 overflow-y-auto divide-y divide-slate-50">
                     {customers.map(c => (
-                      <button key={c.id} onClick={() => onSelectCustomer(c)} className="w-full px-3 py-2 text-left hover:bg-indigo-50 flex flex-col group">
+                      <button key={c.id} onClick={() => onSelectCustomer(c)} className="w-full px-3 py-2 text-left hover:bg-indigo-50 flex flex-col group transition-colors">
                         <span className="text-[10px] font-black text-slate-800 group-hover:text-indigo-700">{c.customer_name}</span>
-                        <span className="text-[8px] text-slate-400 uppercase font-bold tracking-wider">{c.mob_no || 'Contact N/A'}</span>
+                        <div className="flex justify-between items-center mt-0.5">
+                          <span className="text-[8px] text-slate-400 uppercase font-bold tracking-wider">{c.mob_no || 'Contact N/A'}</span>
+                          <span className="text-[7px] bg-slate-100 text-slate-500 px-1 rounded">{c.branch}</span>
+                        </div>
                       </button>
                     ))}
                   </motion.div>
@@ -353,7 +363,7 @@ export const OrderForm: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2 border-t border-slate-100">
             <div className="space-y-1">
               <label className="text-[9px] font-bold text-slate-500 uppercase tracking-wider ml-0.5">Account Status</label>
-              <input type="text" value={accountStatus} onChange={(e) => setAccountStatus(e.target.value)} className="w-full bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-[10px] font-semibold" placeholder="e.g. Regular, Overdue..." />
+              <input type="text" value={accountStatus} onChange={(e) => setAccountStatus(e.target.value)} className="w-full bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-[10px] font-semibold" placeholder="Account summary..." />
             </div>
             <div className="space-y-1">
               <label className="text-[9px] font-bold text-slate-500 uppercase tracking-wider ml-0.5 flex items-center gap-1"><Truck className="h-3 w-3 text-indigo-500" /> Transporter</label>
@@ -363,7 +373,6 @@ export const OrderForm: React.FC = () => {
         </div>
       </section>
 
-      {/* SECTION 3: PRODUCT ENTRY */}
       <section className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden border-l-4 border-l-indigo-600">
         <div className="px-5 py-2 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -429,7 +438,6 @@ export const OrderForm: React.FC = () => {
         </div>
       </section>
 
-      {/* SECTION 4: ORDER SUMMARY (PREVIEW BOX) */}
       <div className="space-y-2" id="order-summary-box">
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden min-h-[180px]">
           <div className="bg-slate-900 px-4 py-2.5 flex items-center justify-between">
